@@ -1,16 +1,8 @@
 #![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
          non_upper_case_globals, unused_assignments, unused_mut)]
 
-use crate::libc;
+use crate::{libc, Fill};
 
-extern "C" {
-    #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong)
-     -> *mut libc::c_void;
-    #[no_mangle]
-    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong)
-     -> *mut libc::c_void;
-}
 pub type __uint8_t = libc::c_uchar;
 pub type __uint32_t = libc::c_uint;
 pub type __uint64_t = libc::c_ulong;
@@ -108,15 +100,9 @@ unsafe extern "C" fn rotr64(w: uint64_t, c: libc::c_uint) -> uint64_t {
 }
 /* prevents compiler optimizing out memset() */
 #[inline]
-unsafe extern "C" fn secure_zero_memory(mut v: *mut libc::c_void,
-                                        mut n: size_t) {
-    static mut memset_v:
-           Option<unsafe extern "C" fn(_: *mut libc::c_void, _: libc::c_int,
-                                       _: size_t) -> *mut libc::c_void> =
-        Some(memset as
-                 unsafe extern "C" fn(_: *mut libc::c_void, _: libc::c_int,
-                                      _: libc::c_ulong) -> *mut libc::c_void);
-    memset_v.expect("non-null function pointer")(v, 0 as libc::c_int, n);
+unsafe extern "C" fn secure_zero_memory(v: &mut [u8],
+                                        mut n: usize) {
+    v.fill(0, n);
 }
 /*
    BLAKE2 reference source code package - reference C implementations
@@ -265,8 +251,7 @@ unsafe extern "C" fn blake2b_increment_counter(mut S: *mut blake2b_state,
 }
 unsafe extern "C" fn blake2b_init0(mut S: *mut blake2b_state) {
     let mut i: size_t = 0;
-    memset(S as *mut libc::c_void, 0 as libc::c_int,
-           ::std::mem::size_of::<blake2b_state>() as libc::c_ulong);
+    *S = ::core::mem::zeroed::<blake2b_state>();
     i = 0 as libc::c_int as size_t;
     while i < 8 as libc::c_int as libc::c_ulong {
         (*S).h[i as usize] = blake2b_IV[i as usize];
@@ -325,17 +310,12 @@ pub unsafe extern "C" fn blake2b_init(mut S: *mut blake2b_state,
                 *mut libc::c_void, 0 as libc::c_int as uint32_t);
     (*P.as_mut_ptr()).node_depth = 0 as libc::c_int as uint8_t;
     (*P.as_mut_ptr()).inner_length = 0 as libc::c_int as uint8_t;
-    memset((*P.as_mut_ptr()).reserved.as_mut_ptr() as *mut libc::c_void,
-           0 as libc::c_int,
-           ::std::mem::size_of::<[uint8_t; 14]>() as libc::c_ulong);
-    memset((*P.as_mut_ptr()).salt.as_mut_ptr() as *mut libc::c_void,
-           0 as libc::c_int,
-           ::std::mem::size_of::<[uint8_t; 16]>() as libc::c_ulong);
-    memset((*P.as_mut_ptr()).personal.as_mut_ptr() as *mut libc::c_void,
-           0 as libc::c_int,
-           ::std::mem::size_of::<[uint8_t; 16]>() as libc::c_ulong);
+    (*P.as_mut_ptr()).reserved.fill(0, ::core::mem::size_of::<[uint8_t; 14]>());
+    (*P.as_mut_ptr()).salt.fill(0, ::core::mem::size_of::<[uint8_t; 16]>());
+    (*P.as_mut_ptr()).personal.fill(0, ::core::mem::size_of::<[uint8_t; 16]>());
     return blake2b_init_param(S, P.as_mut_ptr());
 }
+
 #[no_mangle]
 pub unsafe extern "C" fn blake2b_init_key(mut S: *mut blake2b_state,
                                           mut outlen: size_t,
@@ -374,26 +354,18 @@ pub unsafe extern "C" fn blake2b_init_key(mut S: *mut blake2b_state,
                 *mut libc::c_void, 0 as libc::c_int as uint32_t);
     (*P.as_mut_ptr()).node_depth = 0 as libc::c_int as uint8_t;
     (*P.as_mut_ptr()).inner_length = 0 as libc::c_int as uint8_t;
-    memset((*P.as_mut_ptr()).reserved.as_mut_ptr() as *mut libc::c_void,
-           0 as libc::c_int,
-           ::std::mem::size_of::<[uint8_t; 14]>() as libc::c_ulong);
-    memset((*P.as_mut_ptr()).salt.as_mut_ptr() as *mut libc::c_void,
-           0 as libc::c_int,
-           ::std::mem::size_of::<[uint8_t; 16]>() as libc::c_ulong);
-    memset((*P.as_mut_ptr()).personal.as_mut_ptr() as *mut libc::c_void,
-           0 as libc::c_int,
-           ::std::mem::size_of::<[uint8_t; 16]>() as libc::c_ulong);
+    (*P.as_mut_ptr()).reserved.fill(0, ::core::mem::size_of::<[uint8_t; 14]>());
+    (*P.as_mut_ptr()).salt.fill(0, ::core::mem::size_of::<[uint8_t; 16]>());
+    (*P.as_mut_ptr()).personal.fill(0, ::std::mem::size_of::<[uint8_t; 16]>());
     if blake2b_init_param(S, P.as_mut_ptr()) < 0 as libc::c_int {
         return -(1 as libc::c_int)
     }
     let mut block: [uint8_t; 128] = [0; 128];
-    memset(block.as_mut_ptr() as *mut libc::c_void, 0 as libc::c_int,
-           BLAKE2B_BLOCKBYTES as libc::c_int as libc::c_ulong);
-    memcpy(block.as_mut_ptr() as *mut libc::c_void, key, keylen);
+    (block.as_mut_ptr() as *mut libc::c_void).copy_from(key, keylen as usize);
     blake2b_update(S, block.as_mut_ptr() as *const libc::c_void,
                    BLAKE2B_BLOCKBYTES as libc::c_int as size_t);
-    secure_zero_memory(block.as_mut_ptr() as *mut libc::c_void,
-                       BLAKE2B_BLOCKBYTES as libc::c_int as size_t);
+    secure_zero_memory(&mut block,
+                       BLAKE2B_BLOCKBYTES as usize);
     return 0 as libc::c_int;
 }
 unsafe extern "C" fn blake2b_compress(mut S: *mut blake2b_state,
@@ -6211,9 +6183,7 @@ pub unsafe extern "C" fn blake2b_update(mut S: *mut blake2b_state,
         if inlen > fill {
             (*S).buflen = 0 as libc::c_int as size_t;
             /* Burn the key from stack */
-            memcpy((*S).buf.as_mut_ptr().offset(left as isize) as
-                       *mut libc::c_void, in_0 as *const libc::c_void,
-                   fill); /* Fill buffer */
+            (*S).buf.as_mut_ptr().offset(left as isize).copy_from(in_0, fill as usize);
             blake2b_increment_counter(S,
                                       BLAKE2B_BLOCKBYTES as libc::c_int as
                                           uint64_t); /* Compress */
@@ -6239,8 +6209,7 @@ pub unsafe extern "C" fn blake2b_update(mut S: *mut blake2b_state,
                         size_t as size_t
             }
         }
-        memcpy((*S).buf.as_mut_ptr().offset((*S).buflen as isize) as
-                   *mut libc::c_void, in_0 as *const libc::c_void, inlen);
+        (*S).buf.as_mut_ptr().offset((*S).buflen as isize).copy_from(in_0 as *const u8, inlen as usize);
         (*S).buflen =
             ((*S).buflen as libc::c_ulong).wrapping_add(inlen) as size_t as
                 size_t
@@ -6261,10 +6230,8 @@ pub unsafe extern "C" fn blake2b_final(mut S: *mut blake2b_state,
     if blake2b_is_lastblock(S) != 0 { return -(1 as libc::c_int) }
     blake2b_increment_counter(S, (*S).buflen);
     blake2b_set_lastblock(S);
-    memset((*S).buf.as_mut_ptr().offset((*S).buflen as isize) as
-               *mut libc::c_void, 0 as libc::c_int,
-           (BLAKE2B_BLOCKBYTES as libc::c_int as
-                libc::c_ulong).wrapping_sub((*S).buflen));
+    (*S).buf[(*S).buflen as usize..].fill(0,(BLAKE2B_BLOCKBYTES as libc::c_int as
+                libc::c_ulong).wrapping_sub((*S).buflen) as usize);
     blake2b_compress(S, (*S).buf.as_mut_ptr() as *const uint8_t);
     i = 0 as libc::c_int as size_t;
     while i < 8 as libc::c_int as libc::c_ulong {
@@ -6276,10 +6243,8 @@ pub unsafe extern "C" fn blake2b_final(mut S: *mut blake2b_state,
                 (*S).h[i as usize]);
         i = i.wrapping_add(1)
     }
-    memcpy(out, buffer.as_mut_ptr() as *const libc::c_void, (*S).outlen);
-    secure_zero_memory(buffer.as_mut_ptr() as *mut libc::c_void,
-                       ::std::mem::size_of::<[uint8_t; 64]>() as
-                           libc::c_ulong);
+    out.copy_from(buffer.as_mut_ptr() as *const libc::c_void, (*S).outlen as usize);
+    secure_zero_memory(&mut buffer, ::core::mem::size_of::<[uint8_t; 64]>());
     return 0 as libc::c_int;
 }
 /* inlen, at least, should be uint64_t. Others can be size_t. */
