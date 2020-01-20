@@ -1,3 +1,5 @@
+#![cfg_attr(not(test), no_std)]
+
 mod libc;
 mod blake2b_ref;
 #[cfg(test)]

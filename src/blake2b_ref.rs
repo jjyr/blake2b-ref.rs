@@ -270,7 +270,7 @@ pub unsafe extern "C" fn blake2b_init_param(mut S: *mut blake2b_state,
     i = 0 as libc::c_int as size_t;
     while i < 8 as libc::c_int as libc::c_ulong {
         (*S).h[i as usize] ^=
-            load64(p.offset((::std::mem::size_of::<uint64_t>() as
+            load64(p.offset((::core::mem::size_of::<uint64_t>() as
                                  libc::c_ulong).wrapping_mul(i) as isize) as
                        *const libc::c_void);
         i = i.wrapping_add(1)
@@ -356,7 +356,7 @@ pub unsafe extern "C" fn blake2b_init_key(mut S: *mut blake2b_state,
     (*P.as_mut_ptr()).inner_length = 0 as libc::c_int as uint8_t;
     (*P.as_mut_ptr()).reserved.fill(0, ::core::mem::size_of::<[uint8_t; 14]>());
     (*P.as_mut_ptr()).salt.fill(0, ::core::mem::size_of::<[uint8_t; 16]>());
-    (*P.as_mut_ptr()).personal.fill(0, ::std::mem::size_of::<[uint8_t; 16]>());
+    (*P.as_mut_ptr()).personal.fill(0, ::core::mem::size_of::<[uint8_t; 16]>());
     if blake2b_init_param(S, P.as_mut_ptr()) < 0 as libc::c_int {
         return -(1 as libc::c_int)
     }
@@ -376,7 +376,7 @@ unsafe extern "C" fn blake2b_compress(mut S: *mut blake2b_state,
     i = 0 as libc::c_int as size_t;
     while i < 16 as libc::c_int as libc::c_ulong {
         m[i as usize] =
-            load64(block.offset(i.wrapping_mul(::std::mem::size_of::<uint64_t>()
+            load64(block.offset(i.wrapping_mul(::core::mem::size_of::<uint64_t>()
                                                    as libc::c_ulong) as isize)
                        as *const libc::c_void);
         i = i.wrapping_add(1)
@@ -6236,7 +6236,7 @@ pub unsafe extern "C" fn blake2b_final(mut S: *mut blake2b_state,
     i = 0 as libc::c_int as size_t;
     while i < 8 as libc::c_int as libc::c_ulong {
         /* Output full hash to temp buffer */
-        store64(buffer.as_mut_ptr().offset((::std::mem::size_of::<uint64_t>()
+        store64(buffer.as_mut_ptr().offset((::core::mem::size_of::<uint64_t>()
                                                 as
                                                 libc::c_ulong).wrapping_mul(i)
                                                as isize) as *mut libc::c_void,
