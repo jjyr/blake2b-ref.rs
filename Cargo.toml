@@ -3,6 +3,9 @@ name = "blake2b-ref"
 version = "0.1.0"
 authors = ["jjy <jjyruby@gmail.com>"]
 edition = "2018"
+license = "MIT"
+description = "A `no_std` BLAKE2B implementation."
+repository = "https://github.com/jjyr/blake2b-ref.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
