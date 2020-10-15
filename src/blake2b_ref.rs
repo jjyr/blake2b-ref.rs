@@ -84,8 +84,8 @@ unsafe extern "C" fn rotr64(w: uint64_t, c: libc::c_uint) -> uint64_t {
 }
 /* prevents compiler optimizing out memset() */
 #[inline]
-unsafe extern "C" fn secure_zero_memory(v: &mut [u8], mut n: usize) {
-    v.fill(0, n);
+unsafe fn secure_zero_memory(v: &mut [u8], mut n: usize) {
+    v.fill_bytes(0, n);
 }
 /*
    BLAKE2 reference source code package - reference C implementations
@@ -420,13 +420,13 @@ pub unsafe extern "C" fn blake2b_init(
     (*P.as_mut_ptr()).inner_length = 0 as libc::c_int as uint8_t;
     (*P.as_mut_ptr())
         .reserved
-        .fill(0, ::core::mem::size_of::<[uint8_t; 14]>());
+        .fill_bytes(0, ::core::mem::size_of::<[uint8_t; 14]>());
     (*P.as_mut_ptr())
         .salt
-        .fill(0, ::core::mem::size_of::<[uint8_t; 16]>());
+        .fill_bytes(0, ::core::mem::size_of::<[uint8_t; 16]>());
     (*P.as_mut_ptr())
         .personal
-        .fill(0, ::core::mem::size_of::<[uint8_t; 16]>());
+        .fill_bytes(0, ::core::mem::size_of::<[uint8_t; 16]>());
     return blake2b_init_param(S, P.as_mut_ptr());
 }
 
@@ -476,13 +476,13 @@ pub unsafe extern "C" fn blake2b_init_key(
     (*P.as_mut_ptr()).inner_length = 0 as libc::c_int as uint8_t;
     (*P.as_mut_ptr())
         .reserved
-        .fill(0, ::core::mem::size_of::<[uint8_t; 14]>());
+        .fill_bytes(0, ::core::mem::size_of::<[uint8_t; 14]>());
     (*P.as_mut_ptr())
         .salt
-        .fill(0, ::core::mem::size_of::<[uint8_t; 16]>());
+        .fill_bytes(0, ::core::mem::size_of::<[uint8_t; 16]>());
     (*P.as_mut_ptr())
         .personal
-        .fill(0, ::core::mem::size_of::<[uint8_t; 16]>());
+        .fill_bytes(0, ::core::mem::size_of::<[uint8_t; 16]>());
     if blake2b_init_param(S, P.as_mut_ptr()) < 0 as libc::c_int {
         return -(1 as libc::c_int);
     }
@@ -3941,7 +3941,7 @@ pub unsafe extern "C" fn blake2b_final(
     }
     blake2b_increment_counter(S, (*S).buflen);
     blake2b_set_lastblock(S);
-    (*S).buf[(*S).buflen as usize..].fill(
+    (*S).buf[(*S).buflen as usize..].fill_bytes(
         0,
         (BLAKE2B_BLOCKBYTES as libc::c_int as libc::c_ulong).wrapping_sub((*S).buflen) as usize,
     );
