@@ -359,7 +359,6 @@ unsafe extern "C" fn blake2b_init0(mut S: *mut blake2b_state) {
     }
 }
 /* init xors IV with input parameter block */
-#[no_mangle]
 pub unsafe extern "C" fn blake2b_init_param(
     mut S: *mut blake2b_state,
     mut P: *const blake2b_param,
@@ -380,7 +379,6 @@ pub unsafe extern "C" fn blake2b_init_param(
     (*S).outlen = (*P).digest_length as size_t;
     return 0 as libc::c_int;
 }
-#[no_mangle]
 pub unsafe extern "C" fn blake2b_init(
     mut S: *mut blake2b_state,
     mut outlen: size_t,
@@ -432,7 +430,6 @@ pub unsafe extern "C" fn blake2b_init(
     return blake2b_init_param(S, P.as_mut_ptr());
 }
 
-#[no_mangle]
 pub unsafe extern "C" fn blake2b_init_key(
     mut S: *mut blake2b_state,
     mut outlen: size_t,
@@ -500,7 +497,6 @@ pub unsafe extern "C" fn blake2b_init_key(
     return 0 as libc::c_int;
 }
 
-#[no_mangle]
 pub unsafe extern "C" fn blake2b_init_key_with_param(
     mut S: *mut blake2b_state,
     mut P: *const blake2b_param,
@@ -3827,7 +3823,6 @@ unsafe extern "C" fn blake2b_compress(mut S: *mut blake2b_state, mut block: *con
         i = i.wrapping_add(1)
     }
 }
-#[no_mangle]
 pub unsafe extern "C" fn blake2b_update(
     mut S: *mut blake2b_state,
     mut pin: *const libc::c_void,
@@ -3866,7 +3861,6 @@ pub unsafe extern "C" fn blake2b_update(
     }
     return 0 as libc::c_int;
 }
-#[no_mangle]
 pub unsafe extern "C" fn blake2b_final(
     mut S: *mut blake2b_state,
     mut out: *mut libc::c_void,
@@ -3971,7 +3965,6 @@ pub unsafe extern "C" fn blake2b_final(
     return 0 as libc::c_int;
 }
 /* inlen, at least, should be uint64_t. Others can be size_t. */
-#[no_mangle]
 pub unsafe extern "C" fn blake2b(
     mut out: *mut libc::c_void,
     mut outlen: size_t,
@@ -4021,7 +4014,6 @@ pub unsafe extern "C" fn blake2b(
     return 0 as libc::c_int;
 }
 /* This is simply an alias for blake2b */
-#[no_mangle]
 pub unsafe extern "C" fn blake2(
     mut out: *mut libc::c_void,
     mut outlen: size_t,
