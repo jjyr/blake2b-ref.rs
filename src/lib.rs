@@ -1,3 +1,19 @@
+//! This crate is transcompiled from blake2b-ref
+//!
+//! # Example:
+//!
+//! ```
+//! use blake2b_ref::Blake2bBuilder;
+//!
+//! fn hash_message(msg: &[u8]) -> [u8; 32] {
+//!     let mut output = [0u8; 32];
+//!     let mut blake2b = Blake2bBuilder::new(32).personal(b"SMT").build();
+//!     blake2b.update(msg);
+//!     blake2b.finalize(&mut output);
+//!     output
+//! }
+//! ```
+
 #![cfg_attr(not(test), no_std)]
 
 mod blake2b_ref;

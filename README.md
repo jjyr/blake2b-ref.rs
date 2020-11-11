@@ -1,4 +1,5 @@
 # blake2b-ref.rs
+[![Crates.io](https://img.shields.io/crates/v/blake2b-ref.svg)](https://crates.io/crates/blake2b-ref)
 
 A `no_std` BLAKE2B crate.
 
