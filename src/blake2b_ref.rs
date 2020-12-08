@@ -47,7 +47,7 @@ pub struct blake2b_param__ {
 /* 64 */
 pub type blake2b_param = blake2b_param__;
 #[inline]
-unsafe extern "C" fn load64(mut src: *const libc::c_void) -> uint64_t {
+unsafe fn load64(mut src: *const libc::c_void) -> uint64_t {
     let mut p: *const uint8_t = src as *const uint8_t;
     return (*p.offset(0 as libc::c_int as isize) as uint64_t) << 0 as libc::c_int
         | (*p.offset(1 as libc::c_int as isize) as uint64_t) << 8 as libc::c_int
@@ -59,7 +59,7 @@ unsafe extern "C" fn load64(mut src: *const libc::c_void) -> uint64_t {
         | (*p.offset(7 as libc::c_int as isize) as uint64_t) << 56 as libc::c_int;
 }
 #[inline]
-unsafe extern "C" fn store32(mut dst: *mut libc::c_void, mut w: uint32_t) {
+unsafe fn store32(mut dst: *mut libc::c_void, mut w: uint32_t) {
     let mut p: *mut uint8_t = dst as *mut uint8_t;
     *p.offset(0 as libc::c_int as isize) = (w >> 0 as libc::c_int) as uint8_t;
     *p.offset(1 as libc::c_int as isize) = (w >> 8 as libc::c_int) as uint8_t;
@@ -67,7 +67,7 @@ unsafe extern "C" fn store32(mut dst: *mut libc::c_void, mut w: uint32_t) {
     *p.offset(3 as libc::c_int as isize) = (w >> 24 as libc::c_int) as uint8_t;
 }
 #[inline]
-unsafe extern "C" fn store64(mut dst: *mut libc::c_void, mut w: uint64_t) {
+unsafe fn store64(mut dst: *mut libc::c_void, mut w: uint64_t) {
     let mut p: *mut uint8_t = dst as *mut uint8_t;
     *p.offset(0 as libc::c_int as isize) = (w >> 0 as libc::c_int) as uint8_t;
     *p.offset(1 as libc::c_int as isize) = (w >> 8 as libc::c_int) as uint8_t;
@@ -79,7 +79,7 @@ unsafe extern "C" fn store64(mut dst: *mut libc::c_void, mut w: uint64_t) {
     *p.offset(7 as libc::c_int as isize) = (w >> 56 as libc::c_int) as uint8_t;
 }
 #[inline]
-unsafe extern "C" fn rotr64(w: uint64_t, c: libc::c_uint) -> uint64_t {
+unsafe fn rotr64(w: uint64_t, c: libc::c_uint) -> uint64_t {
     return w >> c | w << (64 as libc::c_int as libc::c_uint).wrapping_sub(c);
 }
 /* prevents compiler optimizing out memset() */
@@ -329,27 +329,27 @@ static mut blake2b_sigma: [[uint8_t; 16]; 12] = [
         3 as libc::c_int as uint8_t,
     ],
 ];
-unsafe extern "C" fn blake2b_set_lastnode(mut S: *mut blake2b_state) {
+unsafe fn blake2b_set_lastnode(mut S: *mut blake2b_state) {
     (*S).f[1 as libc::c_int as usize] = -(1 as libc::c_int) as uint64_t;
 }
 /* Some helper functions, not necessarily useful */
-unsafe extern "C" fn blake2b_is_lastblock(mut S: *const blake2b_state) -> libc::c_int {
+unsafe fn blake2b_is_lastblock(mut S: *const blake2b_state) -> libc::c_int {
     return ((*S).f[0 as libc::c_int as usize] != 0 as libc::c_int as libc::c_ulong) as libc::c_int;
 }
-unsafe extern "C" fn blake2b_set_lastblock(mut S: *mut blake2b_state) {
+unsafe fn blake2b_set_lastblock(mut S: *mut blake2b_state) {
     if (*S).last_node != 0 {
         blake2b_set_lastnode(S);
     }
     (*S).f[0 as libc::c_int as usize] = -(1 as libc::c_int) as uint64_t;
 }
-unsafe extern "C" fn blake2b_increment_counter(mut S: *mut blake2b_state, inc: uint64_t) {
+unsafe fn blake2b_increment_counter(mut S: *mut blake2b_state, inc: uint64_t) {
     (*S).t[0 as libc::c_int as usize] = ((*S).t[0 as libc::c_int as usize] as libc::c_ulong)
         .wrapping_add(inc) as uint64_t as uint64_t;
     (*S).t[1 as libc::c_int as usize] = ((*S).t[1 as libc::c_int as usize] as libc::c_ulong)
         .wrapping_add(((*S).t[0 as libc::c_int as usize] < inc) as libc::c_int as libc::c_ulong)
         as uint64_t as uint64_t;
 }
-unsafe extern "C" fn blake2b_init0(mut S: *mut blake2b_state) {
+unsafe fn blake2b_init0(mut S: *mut blake2b_state) {
     let mut i: size_t = 0;
     *S = ::core::mem::zeroed::<blake2b_state>();
     i = 0 as libc::c_int as size_t;
@@ -359,7 +359,7 @@ unsafe extern "C" fn blake2b_init0(mut S: *mut blake2b_state) {
     }
 }
 /* init xors IV with input parameter block */
-pub unsafe extern "C" fn blake2b_init_param(
+pub unsafe fn blake2b_init_param(
     mut S: *mut blake2b_state,
     mut P: *const blake2b_param,
 ) -> libc::c_int {
@@ -379,10 +379,7 @@ pub unsafe extern "C" fn blake2b_init_param(
     (*S).outlen = (*P).digest_length as size_t;
     return 0 as libc::c_int;
 }
-pub unsafe extern "C" fn blake2b_init(
-    mut S: *mut blake2b_state,
-    mut outlen: size_t,
-) -> libc::c_int {
+pub unsafe fn blake2b_init(mut S: *mut blake2b_state, mut outlen: size_t) -> libc::c_int {
     let mut P: [blake2b_param; 1] = [blake2b_param {
         digest_length: 0,
         key_length: 0,
@@ -430,7 +427,7 @@ pub unsafe extern "C" fn blake2b_init(
     return blake2b_init_param(S, P.as_mut_ptr());
 }
 
-pub unsafe extern "C" fn blake2b_init_key(
+pub unsafe fn blake2b_init_key(
     mut S: *mut blake2b_state,
     mut outlen: size_t,
     mut key: *const libc::c_void,
@@ -497,7 +494,7 @@ pub unsafe extern "C" fn blake2b_init_key(
     return 0 as libc::c_int;
 }
 
-pub unsafe extern "C" fn blake2b_init_key_with_param(
+pub unsafe fn blake2b_init_key_with_param(
     mut S: *mut blake2b_state,
     mut P: *const blake2b_param,
     mut key: *const libc::c_void,
@@ -522,7 +519,7 @@ pub unsafe extern "C" fn blake2b_init_key_with_param(
     secure_zero_memory(&mut block, BLAKE2B_BLOCKBYTES as usize);
     return 0 as libc::c_int;
 }
-unsafe extern "C" fn blake2b_compress(mut S: *mut blake2b_state, mut block: *const uint8_t) {
+unsafe fn blake2b_compress(mut S: *mut blake2b_state, mut block: *const uint8_t) {
     let mut m: [uint64_t; 16] = [0; 16];
     let mut v: [uint64_t; 16] = [0; 16];
     let mut i: size_t = 0;
@@ -3823,7 +3820,7 @@ unsafe extern "C" fn blake2b_compress(mut S: *mut blake2b_state, mut block: *con
         i = i.wrapping_add(1)
     }
 }
-pub unsafe extern "C" fn blake2b_update(
+pub unsafe fn blake2b_update(
     mut S: *mut blake2b_state,
     mut pin: *const libc::c_void,
     mut inlen: size_t,
@@ -3861,7 +3858,7 @@ pub unsafe extern "C" fn blake2b_update(
     }
     return 0 as libc::c_int;
 }
-pub unsafe extern "C" fn blake2b_final(
+pub unsafe fn blake2b_final(
     mut S: *mut blake2b_state,
     mut out: *mut libc::c_void,
     mut outlen: size_t,
@@ -3965,7 +3962,7 @@ pub unsafe extern "C" fn blake2b_final(
     return 0 as libc::c_int;
 }
 /* inlen, at least, should be uint64_t. Others can be size_t. */
-pub unsafe extern "C" fn blake2b(
+pub unsafe fn blake2b(
     mut out: *mut libc::c_void,
     mut outlen: size_t,
     mut in_0: *const libc::c_void,
@@ -4014,7 +4011,7 @@ pub unsafe extern "C" fn blake2b(
     return 0 as libc::c_int;
 }
 /* This is simply an alias for blake2b */
-pub unsafe extern "C" fn blake2(
+pub unsafe fn blake2(
     mut out: *mut libc::c_void,
     mut outlen: size_t,
     mut in_0: *const libc::c_void,
