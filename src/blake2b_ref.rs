@@ -61,10 +61,10 @@ unsafe fn load64(mut src: *const libc::c_void) -> uint64_t {
 #[inline]
 unsafe fn store32(mut dst: *mut libc::c_void, mut w: uint32_t) {
     let mut p: *mut uint8_t = dst as *mut uint8_t;
-    *p.offset(0 as libc::c_int as isize) = (w >> 0 as libc::c_int) as uint8_t;
-    *p.offset(1 as libc::c_int as isize) = (w >> 8 as libc::c_int) as uint8_t;
-    *p.offset(2 as libc::c_int as isize) = (w >> 16 as libc::c_int) as uint8_t;
-    *p.offset(3 as libc::c_int as isize) = (w >> 24 as libc::c_int) as uint8_t;
+    p.offset(0 as libc::c_int as isize).write_unaligned((w >> 0 as libc::c_int) as uint8_t);
+    p.offset(1 as libc::c_int as isize).write_unaligned((w >> 8 as libc::c_int) as uint8_t);
+    p.offset(2 as libc::c_int as isize).write_unaligned((w >> 16 as libc::c_int) as uint8_t);
+    p.offset(3 as libc::c_int as isize).write_unaligned((w >> 24 as libc::c_int) as uint8_t);
 }
 #[inline]
 unsafe fn store64(mut dst: *mut libc::c_void, mut w: uint64_t) {
@@ -402,15 +402,15 @@ pub unsafe fn blake2b_init(mut S: *mut blake2b_state, mut outlen: size_t) -> lib
     (*P.as_mut_ptr()).fanout = 1 as libc::c_int as uint8_t;
     (*P.as_mut_ptr()).depth = 1 as libc::c_int as uint8_t;
     store32(
-        &mut (*P.as_mut_ptr()).leaf_length as *mut uint32_t as *mut libc::c_void,
+        core::ptr::addr_of_mut!((*P.as_mut_ptr()).leaf_length) as *mut uint32_t as *mut libc::c_void,
         0 as libc::c_int as uint32_t,
     );
     store32(
-        &mut (*P.as_mut_ptr()).node_offset as *mut uint32_t as *mut libc::c_void,
+        core::ptr::addr_of_mut!((*P.as_mut_ptr()).node_offset) as *mut uint32_t as *mut libc::c_void,
         0 as libc::c_int as uint32_t,
     );
     store32(
-        &mut (*P.as_mut_ptr()).xof_length as *mut uint32_t as *mut libc::c_void,
+        core::ptr::addr_of_mut!((*P.as_mut_ptr()).xof_length) as *mut uint32_t as *mut libc::c_void,
         0 as libc::c_int as uint32_t,
     );
     (*P.as_mut_ptr()).node_depth = 0 as libc::c_int as uint8_t;
@@ -458,15 +458,15 @@ pub unsafe fn blake2b_init_key(
     (*P.as_mut_ptr()).fanout = 1 as libc::c_int as uint8_t;
     (*P.as_mut_ptr()).depth = 1 as libc::c_int as uint8_t;
     store32(
-        &mut (*P.as_mut_ptr()).leaf_length as *mut uint32_t as *mut libc::c_void,
+        core::ptr::addr_of_mut!((*P.as_mut_ptr()).leaf_length) as *mut uint32_t as *mut libc::c_void,
         0 as libc::c_int as uint32_t,
     );
     store32(
-        &mut (*P.as_mut_ptr()).node_offset as *mut uint32_t as *mut libc::c_void,
+        core::ptr::addr_of_mut!((*P.as_mut_ptr()).node_offset) as *mut uint32_t as *mut libc::c_void,
         0 as libc::c_int as uint32_t,
     );
     store32(
-        &mut (*P.as_mut_ptr()).xof_length as *mut uint32_t as *mut libc::c_void,
+        core::ptr::addr_of_mut!((*P.as_mut_ptr()).xof_length) as *mut uint32_t as *mut libc::c_void,
         0 as libc::c_int as uint32_t,
     );
     (*P.as_mut_ptr()).node_depth = 0 as libc::c_int as uint8_t;
